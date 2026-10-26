@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: pedidos-api
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/pedidos_demo}
+      auto-index-creation: true
+
+server:
+  port: ${PORT:8080}
+
+app:
+  cors:
+    origins: ${CORS_ORIGINS:http://localhost:4200}
+
+servicios:
+  pedidos:
+    url: https://6994a4eab081bc23e9c0f61e.mockapi.io/api/v1/pedidos
+  items:
+    url: https://6994a4eab081bc23e9c0f61e.mockapi.io/api/v1/items
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  info:
+    app:
+      name: Examen Backend (Pedidos)
+
+
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
