@@ -3,15 +3,16 @@ package com.empresa.pedidos.infrastructure.adapter.in.web;
 import com.empresa.pedidos.application.port.in.BusquedaUseCase;
 import com.empresa.pedidos.domain.busqueda.CampoSugerible;
 import com.empresa.pedidos.domain.busqueda.FiltroPedidos;
+import com.empresa.pedidos.domain.exception.RecursoNoEncontradoException;
+import com.empresa.pedidos.infrastructure.adapter.in.web.dto.ApiResponse;
 import com.empresa.pedidos.infrastructure.adapter.in.web.dto.BusquedaPedidoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Adaptador de entrada HTTP para la búsqueda type-ahead de pedidos.
@@ -73,11 +74,20 @@ public class BusquedaRestAdapter {
     @GetMapping("/sugerencias")
     @Operation(summary = "Autocompletado de un campo",
             description = "campo = orderRef | orderStatus | storeName | displayName")
-    public List<String> sugerencias(
+    public ResponseEntity<ApiResponse<List<String>>> sugerencias(
             @RequestParam String campo,
             @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "10") int limit) {
-        return busqueda.sugerir(CampoSugerible.desde(campo), q, acotar(limit, LIMITE_MAXIMO_SUGERENCIAS));
+        //Retornar 200 ok y 404 en caso de error
+        List<String> lista =  busqueda.sugerir(CampoSugerible.desde(campo), q,
+                acotar(limit, LIMITE_MAXIMO_SUGERENCIAS));
+
+        if (lista == null || lista.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron resultados"
+            );
+        }
+        return ResponseEntity.ok(ApiResponse.success(lista));
     }
 
     private static int acotar(int valor, int maximo) {
